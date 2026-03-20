@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/providers/AuthProvider";
 
+// All pages require Supabase auth — skip static prerendering
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Concept 32 Portal",
   description:
