@@ -20,18 +20,46 @@ export default function RootPage() {
         return;
       }
 
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role_id")
-        .eq("user_id", session.user.id);
+      // Fetch profile and roles in parallel
+      const [profileResult, rolesResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("onboarding_completed, contact_id")
+          .eq("user_id", session.user.id)
+          .single(),
+        supabase
+          .from("user_roles")
+          .select("role_id")
+          .eq("user_id", session.user.id),
+      ]);
 
-      const roleIds = (roles || []).map((r) => r.role_id);
+      const profile = profileResult.data;
+      const roleIds = (rolesResult.data || []).map((r) => r.role_id);
 
+      // No profile yet - send through provisioning via sign-up
+      if (!profile) {
+        router.replace("/sign-up");
+        return;
+      }
+
+      // Staff roles go to admin
       if (roleIds.includes(2) || roleIds.includes(3) || roleIds.includes(5)) {
         router.replace("/admin-home");
-      } else {
-        router.replace("/home");
+        return;
       }
+
+      // Incomplete onboarding
+      if (!profile.onboarding_completed) {
+        if (profile.contact_id) {
+          router.replace("/welcome");
+        } else {
+          router.replace("/customer-onboarding");
+        }
+        return;
+      }
+
+      // Default: customer/partner home
+      router.replace("/home");
     };
 
     checkAuth();

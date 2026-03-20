@@ -22,6 +22,7 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
       return;
     }
 
+    // Check role-based access
     if (allowedRoles && allowedRoles.length > 0) {
       const hasAccess = roles.some((r) => allowedRoles.includes(r));
       if (!hasAccess) {
@@ -30,15 +31,23 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
       }
     }
 
-    if (
-      profile &&
-      !profile.onboarding_completed &&
-      !window.location.pathname.includes("customer-onboarding") &&
-      !window.location.pathname.includes("sign-up")
-    ) {
-      const isCustomer = roles.includes(1);
-      if (isCustomer) {
-        router.replace("/customer-onboarding");
+    // Redirect incomplete onboarding (customers/partners only)
+    const currentPath = window.location.pathname;
+    const isOnboardingPage =
+      currentPath.includes("customer-onboarding") ||
+      currentPath.includes("welcome") ||
+      currentPath.includes("sign-up");
+
+    if (profile && !profile.onboarding_completed && !isOnboardingPage) {
+      const isCustomerOrPartner = roles.includes(1) || roles.includes(4);
+      if (isCustomerOrPartner) {
+        // If they have a linked contact, send to welcome (confirm details)
+        // Otherwise, send to full onboarding
+        if (profile.contact_id) {
+          router.replace("/welcome");
+        } else {
+          router.replace("/customer-onboarding");
+        }
       }
     }
   }, [user, roles, profile, isLoading, allowedRoles, router]);

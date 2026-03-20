@@ -72,6 +72,40 @@ export default function CustomerOnboardingPage() {
         }
       }
 
+      // Create or update contact record
+      let contactId = profile.contact_id;
+
+      if (!contactId) {
+        // New user - create a contact record
+        const nameParts = onboardingData.display_name.trim().split(/\s+/);
+        const firstName = nameParts[0] || null;
+        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
+
+        const { data: newContact } = await supabase
+          .from("contacts")
+          .insert({
+            email: user.email,
+            first_name: firstName,
+            last_name: lastName,
+            phone: onboardingData.phone,
+            full_address: onboardingData.address,
+            contact_type: onboardingData.user_type,
+          })
+          .select("id")
+          .single();
+
+        contactId = newContact?.id ?? null;
+      } else {
+        // Existing contact - update their info
+        await supabase
+          .from("contacts")
+          .update({
+            phone: onboardingData.phone,
+            full_address: onboardingData.address,
+          })
+          .eq("id", contactId);
+      }
+
       // Update profile
       await supabase
         .from("profiles")
@@ -79,21 +113,11 @@ export default function CustomerOnboardingPage() {
           display_name: onboardingData.display_name,
           phone: onboardingData.phone,
           profile_pic_url: profilePicUrl,
+          contact_id: contactId,
           onboarding_completed: true,
           onboarding_completed_at: new Date().toISOString(),
         })
         .eq("id", profile.id);
-
-      // Update linked contact if exists
-      if (profile.contact_id) {
-        await supabase
-          .from("contacts")
-          .update({
-            phone: onboardingData.phone,
-            full_address: onboardingData.address,
-          })
-          .eq("id", profile.contact_id);
-      }
 
       await refreshProfile();
       router.replace("/home");
