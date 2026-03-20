@@ -1,1 +1,21 @@
-{"name":"","short_name":"","icons":[],"start_url":"/","display":"fullscreen","scope":"/","background_color":"#FFFFFF","theme_color":"#FFFFFF"}
+{
+  "name": "Concept 32 Portal",
+  "short_name": "C32 Portal",
+  "description": "Client portal for Concept 32 Designs — Closet & Storage Concepts",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1B3A5C",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
