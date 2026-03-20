@@ -181,7 +181,7 @@ export default function SignUpPage() {
           ) : (
             <form onSubmit={handleVerifyCode} className="space-y-4">
               <p className="text-sm text-text-secondary text-center">
-                We sent a 6-digit code to{" "}
+                We sent an 8-digit code to{" "}
                 <span className="font-medium text-text-primary">{email}</span>
               </p>
 
@@ -202,11 +202,11 @@ export default function SignUpPage() {
                     type="text"
                     value={otpCode}
                     onChange={(e) =>
-                      setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                      setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 8))
                     }
-                    placeholder="000000"
+                    placeholder="00000000"
                     required
-                    maxLength={6}
+                    maxLength={8}
                     className="w-full pl-10 pr-4 py-2.5 rounded-md border border-gray-300 text-sm text-center tracking-widest font-mono text-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-accent"
                   />
                 </div>
@@ -220,7 +220,7 @@ export default function SignUpPage() {
 
               <button
                 type="submit"
-                disabled={isLoading || otpCode.length < 6}
+                disabled={isLoading || otpCode.length < 8}
                 className="w-full flex items-center justify-center gap-2 bg-brand-primary text-white py-2.5 rounded-md font-medium hover:bg-brand-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
