@@ -23,35 +23,31 @@ export default function SignUpPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
-        await redirectByRole(session.user.id);
+        await provisionAndRedirect(session.access_token, session.user.email || "");
       }
       setCheckingAuth(false);
     };
     checkSession();
   }, []);
 
-  const redirectByRole = async (userId: string) => {
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role_id")
-      .eq("user_id", userId);
+  const provisionAndRedirect = async (accessToken: string, userEmail: string) => {
+    try {
+      const res = await fetch("/api/provision-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: userEmail }),
+      });
 
-    const roleIds = (roles || []).map((r) => r.role_id);
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("onboarding_completed")
-      .eq("user_id", userId)
-      .single();
-
-    if (profile && !profile.onboarding_completed && roleIds.includes(1)) {
-      router.replace("/customer-onboarding");
-      return;
-    }
-
-    if (roleIds.includes(2) || roleIds.includes(3) || roleIds.includes(5)) {
-      router.replace("/admin-home");
-    } else {
+      if (res.ok) {
+        const { redirect } = await res.json();
+        router.replace(redirect || "/home");
+      } else {
+        // Fallback if provisioning fails
+        router.replace("/home");
+      }
+    } catch {
       router.replace("/home");
     }
   };
@@ -100,24 +96,10 @@ export default function SignUpPage() {
       }
 
       if (data.session) {
-        // Call provision-customer edge function
-        try {
-          await fetch(
-            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/provision-customer`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${data.session.access_token}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ email: email.trim().toLowerCase() }),
-            }
-          );
-        } catch (provisionError) {
-          console.error("Provision error:", provisionError);
-        }
-
-        await redirectByRole(data.session.user.id);
+        await provisionAndRedirect(
+          data.session.access_token,
+          email.trim().toLowerCase()
+        );
       }
     } catch (err) {
       setAuthVerifyError("Verification failed. Please try again.");
