@@ -156,7 +156,7 @@ export default function ProjectDetailsPage({
         .eq("project_id", projectId);
 
       const relatedPostIds = (relatedPostRows || [])
-        .map((r) => r.post_id)
+        .map((r: { post_id: number | null }) => r.post_id)
         .filter(Boolean) as number[];
 
       if (relatedPostIds.length > 0) {
@@ -176,7 +176,7 @@ export default function ProjectDetailsPage({
 
       const favSet = new Set<number>(
         (favoritedRows || [])
-          .map((r) => r.post_id)
+          .map((r: { post_id: number | null }) => r.post_id)
           .filter(Boolean) as number[]
       );
       setFavoritedIds(favSet);
@@ -214,7 +214,8 @@ export default function ProjectDetailsPage({
           table: "project_messages",
           filter: `project_id=eq.${projectId}`,
         },
-        (payload) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (payload: any) => {
           setMessages((prev) => [...prev, payload.new as ProjectMessage]);
         }
       )

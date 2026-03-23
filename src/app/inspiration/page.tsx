@@ -47,7 +47,7 @@ export default function InspirationPage() {
       .select("post_id")
       .eq("profile_id", profile.id);
     setFavoritedIds(
-      new Set((data || []).map((f) => f.post_id).filter(Boolean) as number[])
+      new Set((data || []).map((f: { post_id: number | null }) => f.post_id).filter(Boolean) as number[])
     );
   }, [supabase, profile]);
 
