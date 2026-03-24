@@ -34,20 +34,13 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
     // Redirect incomplete onboarding (customers/partners only)
     const currentPath = window.location.pathname;
     const isOnboardingPage =
-      currentPath.includes("customer-onboarding") ||
-      currentPath.includes("welcome") ||
+      currentPath.includes("onboarding") ||
       currentPath.includes("sign-up");
 
     if (profile && !profile.onboarding_completed && !isOnboardingPage) {
       const isCustomerOrPartner = roles.includes(1) || roles.includes(4);
       if (isCustomerOrPartner) {
-        // If they have a linked contact, send to welcome (confirm details)
-        // Otherwise, send to full onboarding
-        if (profile.contact_id) {
-          router.replace("/welcome");
-        } else {
-          router.replace("/customer-onboarding");
-        }
+        router.replace("/onboarding");
       }
     }
   }, [user, roles, profile, isLoading, allowedRoles, router]);

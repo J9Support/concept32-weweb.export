@@ -5,10 +5,23 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import { Loader } from "@/components/ui/Loader";
-import { User, Phone, MapPin, Camera, ArrowRight, ArrowLeft, Check } from "lucide-react";
+import {
+  User,
+  Phone,
+  MapPin,
+  Camera,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+} from "lucide-react";
 
-export default function CustomerOnboardingPage() {
-  const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
+export default function OnboardingPage() {
+  const {
+    user,
+    profile,
+    isLoading: authLoading,
+    refreshProfile,
+  } = useAuth();
   const router = useRouter();
   const supabase = createClient();
 
@@ -23,6 +36,7 @@ export default function CustomerOnboardingPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  // Redirect guards + pre-fill form from profile
   useEffect(() => {
     if (!authLoading && !user) {
       router.replace("/sign-up");
@@ -33,6 +47,7 @@ export default function CustomerOnboardingPage() {
         router.replace("/home");
         return;
       }
+      // Pre-fill from profile (populated by provision API from contact data)
       setOnboardingData((prev) => ({
         ...prev,
         display_name: profile.display_name || "",
@@ -76,10 +91,11 @@ export default function CustomerOnboardingPage() {
       let contactId = profile.contact_id;
 
       if (!contactId) {
-        // New user - create a contact record
+        // New user — create a contact record
         const nameParts = onboardingData.display_name.trim().split(/\s+/);
         const firstName = nameParts[0] || null;
-        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
+        const lastName =
+          nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
 
         const { data: newContact } = await supabase
           .from("contacts")
@@ -96,7 +112,7 @@ export default function CustomerOnboardingPage() {
 
         contactId = newContact?.id ?? null;
       } else {
-        // Existing contact - update their info
+        // Existing contact — update their info
         await supabase
           .from("contacts")
           .update({
@@ -147,7 +163,9 @@ export default function CustomerOnboardingPage() {
       <div className="w-full max-w-lg">
         {/* Logo */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-white">Welcome to Concept 32</h1>
+          <h1 className="text-2xl font-bold text-white">
+            Welcome to Concept 32
+          </h1>
           <p className="text-blue-200 text-sm mt-1">
             Let&apos;s set up your profile
           </p>

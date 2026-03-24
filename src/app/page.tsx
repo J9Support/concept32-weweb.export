@@ -31,7 +31,7 @@ export default function RootPage() {
         const [profileResult, rolesResult] = await Promise.all([
           supabase
             .from("profiles")
-            .select("onboarding_completed, contact_id")
+            .select("onboarding_completed")
             .eq("user_id", session.user.id)
             .single(),
           supabase
@@ -59,11 +59,7 @@ export default function RootPage() {
 
         // Incomplete onboarding
         if (!profile.onboarding_completed) {
-          if (profile.contact_id) {
-            router.replace("/welcome");
-          } else {
-            router.replace("/customer-onboarding");
-          }
+          router.replace("/onboarding");
           return;
         }
 
