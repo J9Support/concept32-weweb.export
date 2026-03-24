@@ -40,10 +40,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (!existingProfile.onboarding_completed) {
-        if (existingProfile.contact_id) {
-          return NextResponse.json({ redirect: "/welcome" });
-        }
-        return NextResponse.json({ redirect: "/customer-onboarding" });
+        return NextResponse.json({ redirect: "/onboarding" });
       }
 
       return NextResponse.json({ redirect: "/home" });
@@ -59,7 +56,7 @@ export async function POST(request: NextRequest) {
         .single(),
       supabase
         .from("contacts")
-        .select("id, first_name, last_name, contact_type")
+        .select("id, first_name, last_name, contact_type, phone")
         .ilike("email", normalizedEmail)
         .limit(1)
         .single(),
@@ -108,6 +105,7 @@ export async function POST(request: NextRequest) {
         email: normalizedEmail,
         contact_id: contact.id,
         display_name: displayName,
+        phone: contact.phone ?? null,
         user_type: "customer",
         onboarding_completed: false,
       });
@@ -119,7 +117,7 @@ export async function POST(request: NextRequest) {
         granted_at: new Date().toISOString(),
       });
 
-      return NextResponse.json({ redirect: "/welcome" });
+      return NextResponse.json({ redirect: "/onboarding" });
     }
 
     // --- NEW USER (not in employees or contacts) ---
@@ -136,7 +134,7 @@ export async function POST(request: NextRequest) {
       granted_at: new Date().toISOString(),
     });
 
-    return NextResponse.json({ redirect: "/customer-onboarding" });
+    return NextResponse.json({ redirect: "/onboarding" });
   } catch (error) {
     console.error("Provision error:", error);
     return NextResponse.json(
