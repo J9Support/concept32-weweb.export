@@ -38,8 +38,7 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
       currentPath.includes("sign-up");
 
     if (profile && !profile.onboarding_completed && !isOnboardingPage) {
-      const isCustomerOrPartner = roles.includes(1) || roles.includes(4);
-      if (isCustomerOrPartner) {
+      if (profile.user_type === "customer") {
         router.replace("/onboarding");
       }
     }
