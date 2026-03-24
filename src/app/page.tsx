@@ -1,15 +1,21 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Loader } from "@/components/ui/Loader";
 
 export default function RootPage() {
   const router = useRouter();
-  const supabase = createClient();
+  const hasRun = useRef(false);
 
   useEffect(() => {
+    // Guard against double-firing (React strict mode / dependency instability)
+    if (hasRun.current) return;
+    hasRun.current = true;
+
+    const supabase = createClient();
+
     const checkAuth = async () => {
       try {
         const {
@@ -35,7 +41,9 @@ export default function RootPage() {
         ]);
 
         const profile = profileResult.data;
-        const roleIds = (rolesResult.data || []).map((r: { role_id: number }) => r.role_id);
+        const roleIds = (rolesResult.data || []).map(
+          (r: { role_id: number }) => r.role_id
+        );
 
         // No profile yet - send through provisioning via sign-up
         if (!profile) {
@@ -68,7 +76,7 @@ export default function RootPage() {
     };
 
     checkAuth();
-  }, [router, supabase]);
+  }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-brand-bg">
