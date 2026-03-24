@@ -6,6 +6,15 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
+  // Skip Supabase call if there are no auth cookies — nothing to refresh
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-"));
+
+  if (!hasAuthCookie) {
+    return supabaseResponse;
+  }
+
   try {
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

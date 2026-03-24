@@ -74,6 +74,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, fetchProfile, fetchRoles]);
 
   useEffect(() => {
+    let initialized = false;
+
     const initAuth = async () => {
       try {
         const {
@@ -89,9 +91,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error("Auth init error:", error);
       } finally {
+        initialized = true;
         setIsLoading(false);
       }
     };
+
+    // Safety timeout — if auth init hangs, stop loading after 5s
+    const timeout = setTimeout(() => {
+      if (!initialized) {
+        console.warn("Auth init timed out — forcing isLoading to false");
+        setIsLoading(false);
+      }
+    }, 5000);
 
     initAuth();
 
@@ -116,7 +127,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
