@@ -1,67 +1,37 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/providers/AuthProvider";
 import { Loader } from "@/components/ui/Loader";
 
 export default function RootPage() {
+  const { user, profile, isLoading } = useAuth();
   const router = useRouter();
-  const hasRun = useRef(false);
 
   useEffect(() => {
-    // Guard against double-firing (React strict mode / dependency instability)
-    if (hasRun.current) return;
-    hasRun.current = true;
+    if (isLoading) return;
 
-    const supabase = createClient();
+    if (!user || !profile) {
+      router.replace("/sign-up");
+      return;
+    }
 
-    const checkAuth = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+    // Employees go to admin
+    if (profile.user_type === "employee") {
+      router.replace("/admin-home");
+      return;
+    }
 
-        if (!session) {
-          router.replace("/sign-up");
-          return;
-        }
+    // Incomplete onboarding
+    if (!profile.onboarding_completed) {
+      router.replace("/onboarding");
+      return;
+    }
 
-        // Fetch profile
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("onboarding_completed, user_type")
-          .eq("user_id", session.user.id)
-          .single();
-
-        // No profile yet - send through provisioning via sign-up
-        if (!profile) {
-          router.replace("/sign-up");
-          return;
-        }
-
-        // Employees go to admin
-        if (profile.user_type === "employee") {
-          router.replace("/admin-home");
-          return;
-        }
-
-        // Incomplete onboarding
-        if (!profile.onboarding_completed) {
-          router.replace("/onboarding");
-          return;
-        }
-
-        // Default: customer/partner home
-        router.replace("/home");
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        router.replace("/sign-up");
-      }
-    };
-
-    checkAuth();
-  }, [router]);
+    // Default: customer/partner home
+    router.replace("/home");
+  }, [user, profile, isLoading, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-brand-bg">
