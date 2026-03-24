@@ -42,8 +42,11 @@ export default function HomePage() {
   }, [profile]);
 
   useEffect(() => {
+    if (!profile) {
+      setIsLoading(false);
+      return;
+    }
     const fetchProjects = async () => {
-      if (!profile) return;
       const { data } = await supabase
         .from("projects")
         .select("*")
@@ -52,7 +55,8 @@ export default function HomePage() {
       setIsLoading(false);
     };
     fetchProjects();
-  }, [profile, supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile]);
 
   const handleProfileSave = async () => {
     if (!profile) return;

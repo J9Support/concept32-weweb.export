@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/providers/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import { Loader } from "@/components/ui/Loader";
 import { Mail, KeyRound, ArrowRight } from "lucide-react";
@@ -16,6 +17,7 @@ export default function SignUpPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
   const supabase = createClient();
+  const { refreshProfile } = useAuth();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -23,14 +25,15 @@ export default function SignUpPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
-        await provisionAndRedirect(session.access_token, session.user.email || "");
+        await provisionAndRedirect(session.user.email || "");
       }
       setCheckingAuth(false);
     };
     checkSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const provisionAndRedirect = async (accessToken: string, userEmail: string) => {
+  const provisionAndRedirect = async (userEmail: string) => {
     try {
       const res = await fetch("/api/provision-user", {
         method: "POST",
@@ -39,6 +42,9 @@ export default function SignUpPage() {
         },
         body: JSON.stringify({ email: userEmail }),
       });
+
+      // Refresh AuthProvider so downstream pages have the profile
+      await refreshProfile();
 
       if (res.ok) {
         const { redirect } = await res.json();
@@ -97,7 +103,6 @@ export default function SignUpPage() {
 
       if (data.session) {
         await provisionAndRedirect(
-          data.session.access_token,
           email.trim().toLowerCase()
         );
       }
