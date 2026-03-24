@@ -51,7 +51,8 @@ export function useProjectMessages(projectId: number) {
           table: "project_messages",
           filter: `project_id=eq.${projectId}`,
         },
-        (payload) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (payload: any) => {
           setMessages((prev) => [...prev, payload.new as ProjectMessage]);
         }
       )

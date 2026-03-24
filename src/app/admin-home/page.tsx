@@ -109,8 +109,8 @@ export default function AdminHomePage() {
             setFavoritedIds(
               new Set(
                 favData
-                  .map((f) => f.post_id)
-                  .filter((id): id is number => id !== null)
+                  .map((f: { post_id: number | null }) => f.post_id)
+                  .filter((id: number | null): id is number => id !== null)
               )
             );
           }

@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from("user_roles")
         .select("role_id")
         .eq("user_id", userId);
-      const roleIds = (data || []).map((r) => r.role_id).filter(Boolean) as number[];
+      const roleIds = (data || []).map((r: { role_id: number }) => r.role_id).filter(Boolean) as number[];
       setRoles(roleIds);
       return roleIds;
     },
@@ -97,22 +97,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
+    } = supabase.auth.onAuthStateChange(async (_event: string, newSession: Session | null) => {
+      try {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
 
-      if (newSession?.user) {
-        await fetchProfile(newSession.user.id);
-        await fetchRoles(newSession.user.id);
-      } else {
-        setProfile(null);
-        setRoles([]);
+        if (newSession?.user) {
+          await fetchProfile(newSession.user.id);
+          await fetchRoles(newSession.user.id);
+        } else {
+          setProfile(null);
+          setRoles([]);
+        }
+      } catch (error) {
+        console.error("Auth state change error:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase, fetchProfile, fetchRoles]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const signOut = async () => {
     await supabase.auth.signOut();
