@@ -27,23 +27,12 @@ export default function RootPage() {
           return;
         }
 
-        // Fetch profile and roles in parallel
-        const [profileResult, rolesResult] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("onboarding_completed")
-            .eq("user_id", session.user.id)
-            .single(),
-          supabase
-            .from("user_roles")
-            .select("role_id")
-            .eq("user_id", session.user.id),
-        ]);
-
-        const profile = profileResult.data;
-        const roleIds = (rolesResult.data || []).map(
-          (r: { role_id: number }) => r.role_id
-        );
+        // Fetch profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("onboarding_completed, user_type")
+          .eq("user_id", session.user.id)
+          .single();
 
         // No profile yet - send through provisioning via sign-up
         if (!profile) {
@@ -51,8 +40,8 @@ export default function RootPage() {
           return;
         }
 
-        // Staff roles go to admin
-        if (roleIds.includes(2) || roleIds.includes(3) || roleIds.includes(5)) {
+        // Employees go to admin
+        if (profile.user_type === "employee") {
           router.replace("/admin-home");
           return;
         }

@@ -30,12 +30,8 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existingProfile) {
-      // Returning user - route based on existing data
-      const roleIds = (existingProfile.user_roles || []).map(
-        (r: { role_id: number }) => r.role_id
-      );
-
-      if (roleIds.includes(2) || roleIds.includes(3) || roleIds.includes(5)) {
+      // Returning user - route based on user_type
+      if (existingProfile.user_type === "employee") {
         return NextResponse.json({ redirect: "/admin-home" });
       }
 
